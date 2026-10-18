@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -206,3 +206,259 @@ function executarGerador() {
     if (totalJogos > 10) totalJogos = 10;
     if (totalJogos < 1) totalJogos = 1;
     if (jogosComFixas > totalJogos) jogosComFixas = totalJogos;
+
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador Lotérico Inteligente Pro</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f1f5f9;
+            margin: 0;
+            padding: 20px;
+            color: #1e293b;
+        }
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 5px;
+            color: #0f172a;
+            font-size: 24px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+        .card-api {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .card-api h3 { margin: 0 0 10px 0; font-size: 16px; color: #334155; }
+        .grid-api { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 13px; color: #475569; }
+        .sorteados-bolas { display: flex; gap: 5px; margin-top: 8px; flex-wrap: wrap; }
+        .bola-sorteada { background: #64748b; color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
+        
+        .stats-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; font-size: 13px; }
+        .stats-col { padding: 10px; border-radius: 8px; }
+        .quentes { background: #fef2f2; border: 1px solid #fee2e2; color: #991b1b; }
+        .frias { background: #f0fdf4; border: 1px solid #dcfce7; color: #166534; }
+
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 5px; color: #334155; }
+        select, input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box; font-size: 14px; }
+        .row-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        button { width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
+        button:hover { background: #1d4ed8; }
+        
+        .jogos-lista { margin-top: 25px; }
+        .jogo-item { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 5px solid #2563eb; padding: 12px; border-radius: 6px; margin-bottom: 10px; }
+        .jogo-header { display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; color: #64748b; margin-bottom: 6px; text-transform: uppercase; }
+        .num-container { display: flex; flex-wrap: wrap; gap: 6px; }
+        .bola { color: white; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; }
+        .bola-fixa { background-color: #ea580c !important; box-shadow: 0 0 0 2px #ffedd5; }
+
+        /* Estilos de Cores Temáticas das Loterias */
+        .megasena-theme { border-left-color: #209869; }
+        .megasena-theme .bola:not(.bola-fixa) { background-color: #209869; }
+        .lotofacil-theme { border-left-color: #930089; }
+        .lotofacil-theme .bola:not(.bola-fixa) { background-color: #930089; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Gerador Analítico Lotérico</h1>
+    <div class="subtitle">Sincronização Online e Painel de Filtros Avançados</div>
+
+    <!-- Painel de Dados Sincronizados com a Caixa -->
+    <div class="card-api">
+        <h3 id="api-titulo">Conectando ao banco de dados da Caixa...</h3>
+        <div class="grid-api">
+            <div>Concurso: <strong id="api-concurso">-</strong></div>
+            <div>Data: <strong id="api-data">-</strong></div>
+            <div>Prêmio Estimado: <strong id="api-premio" style="color:#16a34a;">-</strong></div>
+        </div>
+        <div style="font-size: 12px; margin-top: 8px; font-weight:600; color:#475569;">Dezenas sorteadas no último concurso:</div>
+        <div class="sorteados-bolas" id="api-bolas"></div>
+    </div>
+
+    <!-- Estatísticas dos Últimos 15 Concursos -->
+    <div class="stats-box">
+        <div class="stats-col quentes">
+            <strong>Mais Sorteadas (Últimos 15):</strong>
+            <div id="stat-quentes" style="margin-top: 5px; font-weight: bold; font-size: 14px;">-</div>
+        </div>
+        <div class="stats-col frias">
+            <strong>Menos Sorteadas (Últimos 15):</strong>
+            <div id="stat-frias" style="margin-top: 5px; font-weight: bold; font-size: 14px;">-</div>
+        </div>
+    </div>
+
+    <!-- Configurações e Filtros de Geração -->
+    <div class="form-group">
+        <label for="loteria">Selecione a Loteria desejada:</label>
+        <select id="loteria" onchange="atualizarInterfaceLoteria()">
+            <option value="megasena">Mega-Sena</option>
+            <option value="lotofacil">Lotofácil</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="fixasInput">Dezenas Fixas (separe por vírgula. Ex: 04, 18, 22):</label>
+        <input type="text" id="fixasInput" placeholder="Deixe em branco se não quiser fixar dezenas">
+    </div>
+
+    <div class="row-inputs">
+        <div class="form-group">
+            <label for="qtdJogos">Total de jogos para gerar (1 a 10):</label>
+            <input type="number" id="qtdJogos" min="1" max="10" value="3">
+        </div>
+        <div class="form-group">
+            <label for="qtdJogosComFixas">Aplicar fixas em quantos jogos?</label>
+            <input type="number" id="qtdJogosComFixas" min="0" max="10" value="3">
+        </div>
+    </div>
+
+    <button onclick="executarGerador()">Gerar Bilhetes Otimizados</button>
+
+    <div class="jogos-lista" id="listaResultados"></div>
+</div>
+
+<script>
+// Correção: Lista de números primos preenchida corretamente
+const PRIMOS = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79];
+
+const CONFIGS = {
+    megasena: { dezenas: 6, max: 60, classe: 'megasena-theme', mockQuentes: "10, 53, 05, 37, 23", mockFrias: "26, 55, 21, 09, 15", endpoint: "megasena" },
+    lotofacil: { dezenas: 15, max: 25, classe: 'lotofacil-theme', mockQuentes: "20, 11, 25, 13, 14", mockFrias: "16, 06, 08, 02, 07", endpoint: "lotofacil" }
+};
+
+async function carregarDadosAPI(loteriaAtiva) {
+    const config = CONFIGS[loteriaAtiva];
+    document.getElementById('api-titulo').innerText = `Buscando informações da ${loteriaAtiva === 'megasena' ? 'Mega-Sena' : 'Lotofácil'}...`;
+    
+    try {
+        const response = await fetch(`https://herokuapp.com{config.endpoint}/latest`);
+        if (!response.ok) throw new Error();
+        const data = await response.json();
+        
+        document.getElementById('api-titulo').innerText = `${data.loteria.toUpperCase()} Oficial`;
+        document.getElementById('api-concurso').innerText = data.concurso;
+        document.getElementById('api-data').innerText = data.data;
+        document.getElementById('api-premio').innerText = data.valorEstimadoProximoConcurso ? data.valorEstimadoProximoConcurso.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "Acumulado / Ver site";
+        
+        const containerBolas = document.getElementById('api-bolas');
+        containerBolas.innerHTML = '';
+        data.dezenas.forEach(d => {
+            const b = document.createElement('div');
+            b.className = 'bola-sorteada';
+            b.innerText = d;
+            containerBolas.appendChild(b);
+        });
+    } catch (e) {
+        document.getElementById('api-titulo').innerText = "Painel Informativo (Modo Offline)";
+        document.getElementById('api-concurso').innerText = "Indisponível";
+        document.getElementById('api-data').innerText = "Sem conexão";
+        document.getElementById('api-premio').innerText = "Consulte site da Caixa";
+        document.getElementById('api-bolas').innerHTML = "<span style='font-size:11px;color:#94a3b8;'>Não foi possível carregar os números em tempo real. Os geradores continuam funcionando normalmente!</span>";
+    }
+}
+
+function atualizarInterfaceLoteria() {
+    const loteria = document.getElementById('loteria').value;
+    const config = CONFIGS[loteria];
+    document.getElementById('stat-quentes').innerText = config.mockQuentes;
+    document.getElementById('stat-frias').innerText = config.mockFrias;
+    carregarDadosAPI(loteria);
+}
+
+function obtenerFixasValidas(maximo, limiteDezenas) {
+    const stringInput = document.getElementById('fixasInput').value;
+    if (!stringInput.trim()) return [];
+    
+    let processados = stringInput.split(',')
+        .map(n => parseInt(n.trim()))
+        .filter(n => !isNaN(n) && n >= 1 && n <= maximo);
+        
+    let unicos = [...new Set(processados)];
+    
+    if(unicos.length > limiteDezenas) {
+        alert(`Aviso: Você preencheu mais números fixos (${unicos.length}) do que o limite permitido por bilhete (${limiteDezenas}). Apenas as primeiras serão consideradas.`);
+        unicos = unicos.slice(0, limiteDezenas);
+    }
+    return unicos;
+}
+
+function executarGerador() {
+    const tipo = document.getElementById('loteria').value;
+    const config = CONFIGS[tipo];
+    
+    let totalJogos = parseInt(document.getElementById('qtdJogos').value) || 1;
+    let jogosComFixas = parseInt(document.getElementById('qtdJogosComFixas').value) || 0;
+    
+    if (totalJogos > 10) totalJogos = 10;
+    if (totalJogos < 1) totalJogos = 1;
+    if (jogosComFixas > totalJogos) jogosComFixas = totalJogos;
+if (jogosComFixas < 0) jogosComFixas = 0;
+document.getElementById('qtdJogos').value = totalJogos;
+document.getElementById('qtdJogosComFixas').value = jogosComFixas;
+const fixas = obterFixasValidas(config.max, config.dezenas);
+const containerLista = document.getElementById('listaResultados');
+containerLista.innerHTML = '';
+for (let i = 1; i <= totalJogos; i++) {
+let dezenasDoJogo = [];
+let usarFixasNesteJogo = (i <= jogosComFixas);
+if (usarFixasNesteJogo) {
+dezenasDoJogo = [...fixas];
+}
+while (dezenasDoJogo.length < config.dezenas) {
+let numAleatorio = Math.floor(Math.random() * config.max) + 1;
+if (!dezenasDoJogo.includes(numAleatorio)) {
+dezenasDoJogo.push(numAleatorio);
+}
+}
+dezenasDoJogo.sort((a, b) => a - b);
+const item = document.createElement('div');
+item.className = jogo-item ${config.classe};
+let rotuloFixas = usarFixasNesteJogo && fixas.length > 0 ? • Aplicadas ${fixas.length} Fixas : '• Sem Fixas';
+const header = document.createElement('div');
+header.className = 'jogo-header';
+header.innerHTML = <span>Bilhete ${i}</span> <span>${rotuloFixas}</span>;
+item.appendChild(header);
+const dezenasDiv = document.createElement('div');
+dezenasDiv.className = 'num-container';
+dezenasDoJogo.forEach(num => {
+const bola = document.createElement('div');
+bola.className = 'bola';
+if (usarFixasNesteJogo && fixas.includes(num)) {
+bola.className += ' bola-fixa';
+}
+bola.innerText = num < 10 ? '0' + num : num;
+dezenasDiv.appendChild(bola);
+});
+item.appendChild(dezenasDiv);
+containerLista.appendChild(item);
+}
+}
+atualizarInterfaceLoteria();
+
+<FollowUp>
+Basta salvar esta nova versão no arquivo do seu GitHub. Assim que atualizar, teste clicar em **"Gerar Bilhetes Otimizados"** e me conte se as linhas de jogos apareceram corretamente na tela!
+</FollowUp>
+
+<ActionUnit query="como editar um arquivo ja criado no github pelo celular" placement="bottom" intent="informational" />

@@ -132,13 +132,14 @@
 </div>
 
 <script>
-// Configurações Técnicas e Estatísticas Fixas Locais de Frequência Recente
+// Correção: Lista de números primos preenchida corretamente
+const PRIMOS = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79];
+
 const CONFIGS = {
     megasena: { dezenas: 6, max: 60, classe: 'megasena-theme', mockQuentes: "10, 53, 05, 37, 23", mockFrias: "26, 55, 21, 09, 15", endpoint: "megasena" },
     lotofacil: { dezenas: 15, max: 25, classe: 'lotofacil-theme', mockQuentes: "20, 11, 25, 13, 14", mockFrias: "16, 06, 08, 02, 07", endpoint: "lotofacil" }
 };
 
-// Requisição assíncrona para buscar dados atualizados da loteria oficial
 async function carregarDadosAPI(loteriaAtiva) {
     const config = CONFIGS[loteriaAtiva];
     document.getElementById('api-titulo').innerText = `Buscando informações da ${loteriaAtiva === 'megasena' ? 'Mega-Sena' : 'Lotofácil'}...`;
@@ -162,16 +163,14 @@ async function carregarDadosAPI(loteriaAtiva) {
             containerBolas.appendChild(b);
         });
     } catch (e) {
-        // Fallback estruturado para manter usabilidade se o servidor da API cair ou o celular estiver sem internet
         document.getElementById('api-titulo').innerText = "Painel Informativo (Modo Offline)";
         document.getElementById('api-concurso').innerText = "Indisponível";
         document.getElementById('api-data').innerText = "Sem conexão";
         document.getElementById('api-premio').innerText = "Consulte site da Caixa";
-        document.getElementById('api-bolas').innerHTML = "<span style='font-size:11px;color:#94a3b8;'>Não foi possível carregar os números em tempo real. Os geradores e filtros continuam funcionando perfeitamente de forma local!</span>";
+        document.getElementById('api-bolas').innerHTML = "<span style='font-size:11px;color:#94a3b8;'>Não foi possível carregar os números em tempo real. Os geradores continuam funcionando normalmente!</span>";
     }
 }
 
-// Altera os textos estatísticos e dispara a busca da API correspondente
 function atualizarInterfaceLoteria() {
     const loteria = document.getElementById('loteria').value;
     const config = CONFIGS[loteria];
@@ -180,8 +179,7 @@ function atualizarInterfaceLoteria() {
     carregarDadosAPI(loteria);
 }
 
-// Higieniza, valida e estrutura a entrada do campo de dezenas fixas
-function obterFixasValidas(maximo, limiteDezenas) {
+function obtenerFixasValidas(maximo, limiteDezenas) {
     const stringInput = document.getElementById('fixasInput').value;
     if (!stringInput.trim()) return [];
     
@@ -198,8 +196,13 @@ function obterFixasValidas(maximo, limiteDezenas) {
     return unicos;
 }
 
-// Mecanismo central de geração matemática dos jogos
-function ejecutarGerador() {
+function executarGerador() {
     const tipo = document.getElementById('loteria').value;
     const config = CONFIGS[tipo];
     
+    let totalJogos = parseInt(document.getElementById('qtdJogos').value) || 1;
+    let jogosComFixas = parseInt(document.getElementById('qtdJogosComFixas').value) || 0;
+    
+    if (totalJogos > 10) totalJogos = 10;
+    if (totalJogos < 1) totalJogos = 1;
+    if (jogosComFixas > totalJogos) jogosComFixas = totalJogos;
